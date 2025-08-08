@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - webnet
+
+  backend:
+    build: ./backend
+    working_dir: /app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend/app:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mydb
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - webnet
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
+    networks:
+      - webnet
+
+  neo4j:
+    image: neo4j:5
+    restart: always
+    environment:
+      NEO4J_AUTH: neo4j/neo4jtest
+    ports:
+      - "7687:7687"
+      - "7474:7474"
+    networks:
+      - webnet
+
+networks:
+  webnet:
